@@ -1,5 +1,7 @@
 import pandas as pd
+#preprocess 
 
+from config import CONFIG
 def refineData(df):
     col = df.columns[0]
     headerRow = df.loc[ df[col] == "date" ].index[0]
@@ -8,18 +10,19 @@ def refineData(df):
     return refined
 
 
-def getData(nDisctrict):
+def getData(nDisctrict, targetVariable, regionVariantFeatures = []):
     assert nDisctrict in [8, 9], "Invalid number of District. Choose among 8 and 9."
+    
 
     if nDisctrict == 9:
-        f = pd.ExcelFile("./data/data_panel_gdp_9district_nocon.xlsx")
+        f = pd.ExcelFile("./data/Composite_panel_9_districts_cut_M.xlsx")
     else:
-        f = pd.ExcelFile("./data/data_panel_gdp_bea_nocon.xlsx")
+        f = pd.ExcelFile("./data/Composite_panel_8_bea_region_cut_M.xlsx")
     
     result = None
     for name in f.sheet_names:
         df = refineData(pd.read_excel(f, name))
-        df = df[['date', 'STOCHVOL', 'GROWTH RATE']]
+        df = df[['date', targetVariable] + regionVariantFeatures]
         df.columns = ['date'] + [ f'{col}_{name}'  for col in df.columns[1:]]
         
         if result is not None:
@@ -31,16 +34,18 @@ def getData(nDisctrict):
 
 
 def preprocess():
-    baseRate = refineData(pd.read_excel("./data/Base Rate & Shadow Rate.xlsx"))
-    CPI = refineData(pd.read_excel("./data/CPI.xlsx"))
-    CPI.columns = ["date", "CPI", "logCPI", "logCPIDiff"]
+    baseRate = refineData(pd.read_excel("./data/Base Rate & Shadow Rate_M_.xlsx"))[['date', 'Federal Funds Rate']]
+    CPI = refineData(pd.read_excel("./data/Controls_M.xlsx"))
+    CPI.columns = ["date", "CPI", "logCPI", "logCPIDiff", "NFCI", "TMU", "TFU", "TRU"]
+    CPI = CPI[["date"] + CONFIG['commonFeatures']]
 
-    data = getData(8)
+    data = getData(8, CONFIG['targetFeature'], CONFIG['regionVariantFeatures'])
     data = pd.merge(baseRate, data, on = "date")
     data = pd.merge(CPI, data, on = "date")
     data.to_csv("./data/mergedData8.csv", encoding= "utf-8", index = False)
 
-    data = getData(9)
+    data = getData(9, CONFIG['targetFeature'], CONFIG['regionVariantFeatures'])
     data = pd.merge(baseRate, data, on = "date")
     data = pd.merge(CPI, data, on = "date")
     data.to_csv("./data/mergedData9.csv", encoding= "utf-8", index = False)
+

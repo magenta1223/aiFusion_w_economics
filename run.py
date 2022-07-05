@@ -2,10 +2,9 @@ from preprocess import preprocess
 from train import search
 from generateTables import pivot
 
-def main():
+
+
+if __name__ == "__main__":
     preprocess()
     search()
     pivot()
-
-if __name__ == "__main__":
-    main()

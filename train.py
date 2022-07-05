@@ -11,7 +11,7 @@ from copy import deepcopy
 def loadData(nDistrict):
     assert nDistrict in [8, 9], "Invalid number of district."
     
-    return pd.read_csv(f"./data/mergedData{nDistrict}_edit.csv")
+    return pd.read_csv(f"./data/mergedData{nDistrict}.csv")
 
 def toDataFrame(dictionary):
     return pd.DataFrame({ k : [v]   for k, v in dictionary.items()})
@@ -29,28 +29,33 @@ def train(config):
     # - CPI
     # - Base Rate
     # - NFCI
-    EV = ['logCPIDiff', 'Federal Funds Rate', 'NFCI'] + [ f"GROWTH RATE_{config['target']}_shifted_{i}" for i in range(config['slidingWindow'])]
+
+    # CF: common features shared with other areas. ["logCPIDiff", "NFCI", "TMU", "TFU", "TRU"]
+    # targetFeature : GROWTH RATE / Average Urate
+    EV = config['commonFeatures'] + [ f"{config['targetFeature']}_{config['targetArea']}_shifted_{i}" for i in range(config['slidingWindow'])]
 
 
     # stochatic volatility mode
-    if config['StochVol'] is not None:
-        if config['StochVol'] == "Own":
-            EV += [f"STOCHVOL_{config['target']}"]
-        elif config['StochVol'] == "All":
-            EV += [col for col in data.columns if "STOCHVOL" in col]
+    # deprecated. replaced with avg epu
+    if config['EPU'] is not None:
+        if config['EPU'] == "Own":
+            EV += [f"Average EPU_{config['targetArea']}"]
+        elif config['EPU'] == "All":
+            EV += [col for col in data.columns if "Average EPU" in col]
         else:
             pass
 
     # - lag(1) of Growth Rate (sliding window)
+    # GROWTH RATE > URate  
     for i in range(config['slidingWindow']):
-        data[f"GROWTH RATE_{config['target']}_shifted_{i}"] = data[f"GROWTH RATE_{config['target']}"].shift(i)
+        data[f"{config['targetFeature']}_{config['targetArea']}_shifted_{i}"] = data[f"{config['targetFeature']}_{config['targetArea']}"].shift(i)
 
 
     # target horizon
-    data['target'] = data[f"GROWTH RATE_{config['target']}"].shift(- config['targetHorizon'])
+    # URate
+    data['target'] = data[f"{config['targetFeature']}_{config['targetArea']}"].shift(- config['targetHorizon'])
     data = data.dropna()
     
-
     # set split. default ratio = 0.2
     valSet = int(data.shape[0] * config["test"])
     trainSet = data.iloc[:-valSet, :].reset_index(drop=True)
@@ -87,13 +92,12 @@ def search():
     Grid search (not RF's parameter tuning)
     """
     for nDistrict in [8, 9]:
-        targets = TARGETS[nDistrict]
-        CONFIG["nDistrict"] = nDistrict
-
-        for combination in product(STOCHASTICVOLATILITIES, HORIZONS, targets, WINDOWS):
-            config = deepcopy(CONFIG)
-            config['StochVol'] = combination[0]
-            config['targetHorizon'] = combination[1]
-            config['target'] = combination[2]
-            config['slidingWindow'] = combination[3]
-            train(config)
+       targets = TARGETS[nDistrict]
+       CONFIG["nDistrict"] = nDistrict
+       for combination in product(EPU, HORIZONS, targets, WINDOWS):
+           config = deepcopy(CONFIG)
+           config['EPU'] = combination[0]
+           config['targetHorizon'] = combination[1]
+           config['targetArea'] = combination[2]
+           config['slidingWindow'] = combination[3]
+           train(config)
