@@ -45,8 +45,8 @@ MODELS_DICT = {
     "GradientBoost" : GradientBoostingRegressor
 }
 
-#MODELS = ["RandomForest", "AdaBoost", "GradientBoost"]
-MODELS = ["RandomForest"]
+MODELS = ["RandomForest", "AdaBoost", "GradientBoost"]
+#MODELS = ["RandomForest"]
 
 
 TARGETS = {
