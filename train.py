@@ -6,6 +6,8 @@ import numpy as np
 from config import *
 from itertools import product
 from copy import deepcopy
+from metric import clarkwest
+
 
 def loadData(nDistrict):
     assert nDistrict in [8, 9], "Invalid number of district."
@@ -74,7 +76,6 @@ def train(config):
     # RF regressor
     # TODO 
     
-    # Clark & west를 보면
     # Recursive variable importance > RFCV
 
     # RF / ada / gradient boosting을 비교
@@ -89,17 +90,19 @@ def train(config):
     ## error metric
     ## TODO : apply Clark-West test
     config['valError_RMSE'] = np.sqrt(mean_squared_error(pred, y_val))
-    
+    config['predictions'] = pred
+    config['targets'] = y_val.values.tolist()
     # save results
     
     ## initialize
     if not os.path.exists(f"./results.csv"):
         toDataFrame(config).to_csv("./results.csv", index = False)
     
-    ## load & save
     else:
+        ## load & save
         result = pd.read_csv("./results.csv")
         pd.concat([result, toDataFrame(config)], axis = 0).to_csv("./results.csv", index = False)
+
 
     if config['model'] == "RandomForest":
         # variable filtering by feature importance
@@ -114,7 +117,8 @@ def train(config):
 
         ## error metric
         config['valError_RMSE'] = np.sqrt(mean_squared_error(pred, y_val))
-        
+        config['predictions'] = pred
+        config['targets'] = y_val.values.tolist()
         # save results
         
         ## initialize
@@ -142,20 +146,3 @@ def search():
            config['slidingWindow'] = combination[3]
            config['model'] = combination[4]
            train(config)
-
-
-for nDistrict in [8, 9]:
-    targets = TARGETS[nDistrict]
-    CONFIG["nDistrict"] = nDistrict
-    for combination in product(EPU, HORIZONS, targets, WINDOWS, MODELS):
-        config = deepcopy(CONFIG)
-        config['EPU'] = combination[0]
-        config['targetHorizon'] = combination[1]
-        config['targetArea'] = combination[2]
-        config['slidingWindow'] = combination[3]
-        config['model'] = combination[4]
-        break
-    break
-
-
-train(config)
