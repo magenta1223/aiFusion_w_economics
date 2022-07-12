@@ -56,7 +56,13 @@ FEATURE_DICT = {
     "alternative" : {
         "national" : [],
         "regional" : ["Aggregate Civil Labor Force Growth", "Average Initial Claim", "Average EPU"]
-    }
+    },
+    # example
+    # "newExperiment" : {
+    #     "national" : [ NATIONAL VARIABLES ],
+    #     "regional" : [ REGIONAL VARIABLES ]
+    # },
+
 }
 
 

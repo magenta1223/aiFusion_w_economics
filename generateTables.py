@@ -86,30 +86,50 @@ def pivot():
 
             # pivoted.to_csv(f"./results_pivot_{nDisctrict}_{model}_CW.csv")
 
-            table = rawTables.loc[(rawTables["nDistrict"] == nDisctrict) & (rawTables['model'] == model)]
+            # table = rawTables.loc[(rawTables["nDistrict"] == nDisctrict) & (rawTables['model'] == model)]
 
-            base = table.loc[table['mode'] == "base"].reset_index(drop=True)
-            alternative = table.loc[table['mode'] == "alternative"].reset_index(drop=True)
+            # base = table.loc[table['mode'] == "base"].reset_index(drop=True)
+            # alternative = table.loc[table['mode'] == "alternative"].reset_index(drop=True)
+            
         
-            # RMSFE 
+            # # RMSFE 
             
-            # compare with base & own SV
-            _pivoted = _pivot(base, alternative, "RMSFE")
-            _pivoted = _pivoted.reset_index()
-            _pivoted.index = pd.Series(["Base vs. Base + own EPU"] * len(_pivoted), name = "Model Combination")
+            # # compare with base & own SV
+            # _pivoted = _pivot(base, alternative, "RMSFE")
+            # _pivoted = _pivoted.reset_index()
+            # _pivoted.index = pd.Series(["Base vs. Base + own EPU"] * len(_pivoted), name = "Model Combination")
 
-            pivoted = _pivoted
+            # pivoted = _pivoted
             
-            pivoted.to_csv(f"./results_pivot_{nDisctrict}_{model}_RMSFE.csv")
+            # pivoted.to_csv(f"./results_pivot_{nDisctrict}_{model}_RMSFE.csv")
             
             # Clark & West
 
             # compare with base & own SV
-            _pivoted = _pivot(base, alternative, "CW")
-            _pivoted = _pivoted.reset_index()
-            _pivoted.index = pd.Series(["Base vs. Base + own EPU"] * len(_pivoted), name = "Model Combination")
+            # _pivoted = _pivot(base, alternative, "CW")
+            # _pivoted = _pivoted.reset_index()
+            # _pivoted.index = pd.Series(["Base vs. Base + own EPU"] * len(_pivoted), name = "Model Combination")
 
-            pivoted = _pivoted
+            # pivoted = _pivoted
 
 
-            pivoted.to_csv(f"./results_pivot_{nDisctrict}_{model}_CW.csv")
+            # pivoted.to_csv(f"./results_pivot_{nDisctrict}_{model}_CW.csv")
+
+            table = rawTables.loc[(rawTables["nDistrict"] == nDisctrict) & (rawTables['model'] == model)]
+            for metric in ["RMSFE", "CW"]:
+                base = None
+                modes = table['mode'].unique()
+                pivoted = pd.DataFrame({})
+
+                for i in range(len(modes)-1):
+                    if base is None:
+                        base = table.loc[table['mode'] == modes[i]].reset_index(drop=True)
+                    alternative = table.loc[table['mode'] == modes[i+1]].reset_index(drop=True)
+
+                    _pivoted = _pivot(base, alternative, metric)
+                    _pivoted = _pivoted.reset_index()
+                    _pivoted.index = pd.Series([f"{modes[i]} vs. {modes[i+1]}"] * len(_pivoted), name = "Model Combination")
+
+                    pivoted = pd.concat([pivoted, _pivoted], axis = 0)
+                    
+                pivoted.to_csv(f"./results_pivot_{nDisctrict}_{model}_{metric}.csv")
