@@ -5,12 +5,23 @@ CONFIG = {
 
     # Responsive Variables
     "targetFeature" : "Average Urate",
-
+    
+    # ------------------ V1 --------------------- #  
     # features shared across all the regions
-    "commonFeatures" : ["logCPIDiff", "NFCI", "TMU", "TFU", "TRU"],
-
+    # deprecated 
+    # "commonFeatures" : ["logCPIDiff", "NFCI", "TMU", "TFU", "TRU"],
     # region specific features
-    "regionVariantFeatures" : ['Average EPU'],
+    # "regionVariantFeatures" : ['Average EPU'],
+
+
+    # ---------------- V2 ----------------------- # 
+
+    "regionVariantFeatures" : ["Aggregate Civil Labor Force Growth", "Average Initial Claim", "Average EPU"],
+
+    "features" : {
+        "national" : [],
+        "regional" : []
+    },
 
     # target horizon 
     "targetHorizon" : 1,
@@ -23,7 +34,7 @@ CONFIG = {
     # Own : Own Urate
     # All : All Urate
     # TODO : All+ : All + important area Urate
-    "EPU" : None,
+    # "EPU" : None,
 
     "model" : "RandomForest",
     
@@ -37,6 +48,16 @@ CONFIG = {
 
 }
 
+FEATURE_DICT = {
+    "base" : {
+        "national" : [],
+        "regional" : ["Aggregate Civil Labor Force Growth", "Average Initial Claim"]
+    },
+    "alternative" : {
+        "national" : [],
+        "regional" : ["Aggregate Civil Labor Force Growth", "Average Initial Claim", "Average EPU"]
+    }
+}
 
 
 MODELS_DICT = {
@@ -57,7 +78,9 @@ TARGETS = {
 # TODO:  quarterly > monthly
 WINDOWS = [4, 8, 16, 20, 28, 40]
 HORIZONS = [3, 6, 12]
-EPU = [None, "Own", "All"]
+# EPU = [None, "Own", "All"] # deprecated
+ 
+
 
 PARAMS = {
     "RandomForest" : {

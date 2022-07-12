@@ -39,16 +39,29 @@ def getDataset(config, dropFeatures = None):
 
     # commonFeatures: features shared across all the regions. ["logCPIDiff", "NFCI", "TMU", "TFU", "TRU"]
     # targetFeature : GROWTH RATE / Average Urate
-    EV = config['commonFeatures'] + [ f"{config['targetFeature']}_{config['targetArea']}_shifted_{i}" for i in range(1, config['slidingWindow'] + 1)]
-
+    #EV = config['commonFeatures'] + [ f"{config['targetFeature']}_{config['targetArea']}_shifted_{i}" for i in range(1, config['slidingWindow'] + 1)]
+    EV = [ f"{config['targetFeature']}_{config['targetArea']}_shifted_{i}" for i in range(1, config['slidingWindow'] + 1)]
     # avg epu
-    if config['EPU'] is not None:
-        if config['EPU'] == "Own":
-            EV += [f"Average EPU_{config['targetArea']}"]
-        elif config['EPU'] == "All":
-            EV += [col for col in data.columns if "Average EPU" in col]
-        else:
-            pass
+    # if config['EPU'] is not None:
+    #     if config['EPU'] == "Own":
+    #         EV += [f"Average EPU_{config['targetArea']}"]
+    #     elif config['EPU'] == "All":
+    #         EV += [col for col in data.columns if "Average EPU" in col]
+    #     else:
+    #         pass
+
+    national_Variables = config['features']['national']
+    regional_Variables = config['features']['regional']
+
+    if national_Variables:
+        EV += national_Variables
+    
+    if regional_Variables:
+        # for var in regional_Variables:
+        #     for area in TARGETS[config['nDistrict']]:
+        #         EV.append( f"{var}_{area}" )
+        EV += [ f"{var}_{area}"  for var in regional_Variables for area in TARGETS[config['nDistrict']]]
+    
 
     for i in range(1, config['slidingWindow'] + 1):
         data[f"{config['targetFeature']}_{config['targetArea']}_shifted_{i}"] = data[f"{config['targetFeature']}_{config['targetArea']}"].shift(i)
@@ -77,7 +90,6 @@ def train(config):
     # TODO 
     
     # Recursive variable importance > RFCV
-
     # RF / ada / gradient boosting을 비교
     regressor = MODELS_DICT[config['model']](**PARAMS[config['model']])
 
@@ -87,11 +99,13 @@ def train(config):
     ## predcition
     pred = regressor.predict(X_val)
 
+
     ## error metric
     ## TODO : apply Clark-West test
     config['valError_RMSE'] = np.sqrt(mean_squared_error(pred, y_val))
     config['predictions'] = pred
     config['targets'] = y_val.values.tolist()
+    del config['features']
     # save results
     
     ## initialize
@@ -133,14 +147,27 @@ def train(config):
 
 def search():
     """
-    Grid search (not RF's parameter tuning)
+    Grid search (no RF's parameter tuning)
     """
+    # for nDistrict in [8, 9]:
+    #    targets = TARGETS[nDistrict]
+    #    CONFIG["nDistrict"] = nDistrict
+    #    for combination in product(EPU, HORIZONS, targets, WINDOWS, MODELS):
+    #        config = deepcopy(CONFIG)
+    #        config['EPU'] = combination[0]
+    #        config['targetHorizon'] = combination[1]
+    #        config['targetArea'] = combination[2]
+    #        config['slidingWindow'] = combination[3]
+    #        config['model'] = combination[4]
+    #        train(config)
+
     for nDistrict in [8, 9]:
        targets = TARGETS[nDistrict]
        CONFIG["nDistrict"] = nDistrict
-       for combination in product(EPU, HORIZONS, targets, WINDOWS, MODELS):
+       for combination in product(FEATURE_DICT.keys(), HORIZONS, targets, WINDOWS, MODELS):
            config = deepcopy(CONFIG)
-           config['EPU'] = combination[0]
+           config['mode'] = combination[0]
+           config['features'] = FEATURE_DICT[combination[0]]
            config['targetHorizon'] = combination[1]
            config['targetArea'] = combination[2]
            config['slidingWindow'] = combination[3]
