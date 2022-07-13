@@ -40,4 +40,5 @@ def clarkwest(null_M_pred, alt_M_pred, target):
     var = oos.var()
     p = len(target)
 
-    return [mu, var, norm.cdf(mu * np.sqrt(p), 0, np.sqrt(var))]
+    return [mu, var, 1- norm.cdf(mu * np.sqrt(p), 0, np.sqrt(var))]
+

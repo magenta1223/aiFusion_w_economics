@@ -44,17 +44,19 @@ CONFIG = {
     # validation set ratio
     "test" : 0.2,
 
-    "threshold" : 0.95
-
+    "threshold" : 0.95,
+    
+    # type 2 error
+    "alpha" : 0.05
 }
 
 FEATURE_DICT = {
     "base" : {
-        "national" : [],
+        "national" : [ ],
         "regional" : ["Aggregate Civil Labor Force Growth", "Average Initial Claim"]
     },
     "alternative" : {
-        "national" : [],
+        "national" : [ ],
         "regional" : ["Aggregate Civil Labor Force Growth", "Average Initial Claim", "Average EPU"]
     },
     # example
