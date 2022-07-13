@@ -37,8 +37,10 @@ def clarkwest(null_M_pred, alt_M_pred, target):
     oos = squaredError(target, null_M_pred) - squaredError(target, alt_M_pred) + squaredError(null_M_pred, alt_M_pred)
     
     mu = oos.mean()
-    var = oos.var()
+    std = np.sqrt(oos.var())
     p = len(target)
 
-    return [mu, var, 1- norm.cdf(mu * np.sqrt(p), 0, np.sqrt(var))]
+    testValue = mu * np.sqrt(p)
+
+    return [mu, std, norm.cdf(testValue, 0, std), 1 - norm.cdf(testValue, 0, std)]
 

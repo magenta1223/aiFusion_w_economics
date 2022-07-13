@@ -3,6 +3,7 @@ import openpyxl
 import pandas as pd
 from string import ascii_uppercase
 from openpyxl.styles import PatternFill
+from config import *
 
 def color():
     pivotTables = glob("./results_pivot*.csv")
@@ -28,11 +29,10 @@ def color():
         for row in sheet["C3" : f"{colRange}{rowRange}"]:
             for cell in row:
                 if "CW" in sheetname:
-                    threshold = 0.5
+                    if cell.value <  CONFIG['alpha']:
+                        cell.fill = FILL
                 else:
-                    threshold = 1
-
-                if cell.value >= threshold:
-                    cell.fill = FILL
+                    if cell.value >= 1:
+                        cell.fill = FILL
                 
     workbook.save("./pivotAggregated.xlsx")
